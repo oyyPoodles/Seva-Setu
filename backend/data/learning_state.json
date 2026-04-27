@@ -1,0 +1,61 @@
+{
+  "WATER_SANITATION:critical:normal": [
+    {
+      "skill_embedding": -0.03,
+      "skill_tags": 0.02,
+      "geo_proximity": 0.01
+    },
+    {
+      "skill_embedding": -0.03,
+      "skill_tags": 0.02,
+      "geo_proximity": 0.01
+    },
+    {
+      "skill_embedding": -0.03,
+      "skill_tags": 0.02,
+      "geo_proximity": 0.01
+    },
+    {
+      "skill_embedding": -0.03,
+      "skill_tags": 0.02,
+      "geo_proximity": 0.01
+    },
+    {
+      "skill_embedding": -0.03,
+      "skill_tags": 0.02,
+      "geo_proximity": 0.01
+    }
+  ],
+  "test_overflow_context": [
+    {
+      "skill_embedding": 0.01
+    },
+    {
+      "skill_embedding": 0.01
+    },
+    {
+      "skill_embedding": 0.01
+    },
+    {
+      "skill_embedding": 0.01
+    },
+    {
+      "skill_embedding": 0.01
+    },
+    {
+      "skill_embedding": 0.01
+    },
+    {
+      "skill_embedding": 0.01
+    },
+    {
+      "skill_embedding": 0.01
+    },
+    {
+      "skill_embedding": 0.01
+    },
+    {
+      "skill_embedding": 0.01
+    }
+  ]
+}

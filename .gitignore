@@ -1,0 +1,74 @@
+# Environments
+.env
+.env.*
+!.env.example
+.venv/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Firebase / GCloud credentials (NEVER commit)
+*-service-account*.json
+*serviceAccountKey*.json
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Pytest
+.pytest_cache/
+
+# VSCode / IDE
+.vscode/
+.idea/
+
+
+# Node/Frontend
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/build/
+frontend/.DS_Store
+frontend/.env.local
+
+# Graphify and Agent Tools
+graphify-out/
+.agent/
+.gemini/
+
+# General Sensitive & Unnecessary
+*.log
+*.db
+*.sqlite
+*.sqlite3
+pgvector_build/
+db-init/
+
+# OS Files
+.DS_Store
+
+backend/.env
+
+# Tests and Next Env
+frontend/next-env.d.ts
+backend/tests/

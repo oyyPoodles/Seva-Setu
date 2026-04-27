@@ -1,0 +1,53 @@
+# Core
+fastapi==0.115.0
+uvicorn[standard]==0.30.0
+python-dotenv==1.0.0
+python-multipart==0.0.9
+
+# Database
+sqlalchemy[asyncio]==2.0.30
+asyncpg==0.29.0
+pgvector==0.3.0
+
+# Validation
+pydantic==2.7.0
+pydantic-settings==2.3.0
+
+# Google AI
+google-generativeai==0.8.0
+
+# Google Cloud
+google-cloud-speech==2.27.0
+google-cloud-translate==3.16.0
+googlemaps==4.10.0
+google-api-python-client==2.150.0
+
+# NLP & ML
+sentence-transformers==3.0.0
+scikit-learn==1.5.0
+langdetect==1.0.9
+
+# Firebase
+firebase-admin==6.5.0
+
+# Data
+pandas==2.2.2
+openpyxl==3.1.5
+requests==2.32.0
+httpx==0.27.0
+Unidecode==1.3.8
+
+# Scheduling & Middleware
+apscheduler==3.10.4
+slowapi==0.1.9
+
+# Migrations
+alembic==1.16.5
+psycopg2-binary==2.9.11
+
+# Gemma 4 Local Inference (Tier-2 AI fallback + Offline Triage)
+# Install torch separately with correct CUDA version for your hardware:
+#   CPU only:  pip install torch --index-url https://download.pytorch.org/whl/cpu
+#   CUDA 12.1: pip install torch --index-url https://download.pytorch.org/whl/cu121
+transformers>=4.51.0
+accelerate>=0.30.0

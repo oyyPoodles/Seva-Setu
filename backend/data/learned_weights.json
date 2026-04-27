@@ -1,0 +1,44 @@
+{
+  "critical_disaster": {
+    "skill_embedding": 0.2,
+    "skill_tags": 0.3,
+    "geo_proximity": 0.35,
+    "urgency": 0.1,
+    "availability": 0.05
+  },
+  "high_normal": {
+    "skill_embedding": 0.25,
+    "skill_tags": 0.3,
+    "geo_proximity": 0.25,
+    "urgency": 0.12,
+    "availability": 0.08
+  },
+  "HEALTHCARE_moderate": {
+    "skill_embedding": 0.391,
+    "skill_tags": 0.33,
+    "geo_proximity": 0.13,
+    "urgency": 0.1,
+    "availability": 0.05
+  },
+  "EDUCATION_moderate": {
+    "skill_embedding": 0.25,
+    "skill_tags": 0.25,
+    "geo_proximity": 0.15,
+    "urgency": 0.1,
+    "availability": 0.25
+  },
+  "FOOD_critical": {
+    "skill_embedding": 0.15,
+    "skill_tags": 0.25,
+    "geo_proximity": 0.35,
+    "urgency": 0.15,
+    "availability": 0.1
+  },
+  "WATER_SANITATION_critical": {
+    "skill_embedding": 0.2,
+    "skill_tags": 0.35,
+    "geo_proximity": 0.25,
+    "urgency": 0.12,
+    "availability": 0.08
+  }
+}

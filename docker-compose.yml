@@ -1,0 +1,22 @@
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: sevasetu-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: sevasetu
+      POSTGRES_PASSWORD: sevasetu_dev_2024
+      POSTGRES_DB: sevasetu
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./db-init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sevasetu"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata:
