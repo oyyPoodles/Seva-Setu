@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { createChatWebSocket } from '@/lib/api';
 
 interface Props {
@@ -12,124 +13,168 @@ interface Message {
   text: string;
 }
 
-// ── SevaDrone Mascot (Proper animated SVG robot) ────────────────
-function SevaDrone({ size = 64, isTyping = false, idle = false }: { size?: number; isTyping?: boolean; idle?: boolean }) {
+// ════════════════════════════════════════════════════════════════
+// SEVABOT MASCOT – Holographic Drone with full CSS animation
+// ════════════════════════════════════════════════════════════════
+function SevaDrone({ size = 72, isTyping = false, floating = false }: {
+  size?: number; isTyping?: boolean; floating?: boolean;
+}) {
   return (
-    <div style={{
-      width: size, height: size, position: 'relative',
-      animation: idle ? 'droneFloat 3s ease-in-out infinite' : undefined,
-      display: 'inline-block',
-    }}>
+    <>
       <style>{`
         @keyframes droneFloat {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-6px); }
+          0%,100% { transform: translateY(0) rotate(-1deg); }
+          50% { transform: translateY(-8px) rotate(1deg); }
         }
-        @keyframes droneBlink {
-          0%, 92%, 96% { transform: scaleY(1); }
-          94% { transform: scaleY(0.1); }
+        @keyframes rotorSpin {
+          from { transform: rotateX(70deg) rotate(0deg); }
+          to { transform: rotateX(70deg) rotate(360deg); }
         }
-        @keyframes droneGlow {
-          0%, 100% { opacity: 0.4; r: 3; }
-          50% { opacity: 1; r: 5; }
+        @keyframes eyeBlink {
+          0%,90%,100% { transform: scaleY(1); }
+          95% { transform: scaleY(0.08); }
         }
-        @keyframes droneSpin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
+        @keyframes glowPulse {
+          0%,100% { filter: drop-shadow(0 0 4px #10B98188); }
+          50% { filter: drop-shadow(0 0 12px #10B981cc); }
         }
-        @keyframes droneTypePulse {
-          0%, 100% { fill: #10B981; }
-          50% { fill: #059669; }
+        @keyframes antennaGlow {
+          0%,100% { fill: #10B981; r: 3; }
+          50% { fill: #6EE7B7; r: 4.5; }
         }
-        .drone-eye { animation: droneBlink 4s infinite; transform-box: fill-box; transform-origin: center; }
-        .drone-glow { animation: droneGlow 2s ease-in-out infinite; }
-        .drone-antenna { animation: droneGlow 1.5s ease-in-out infinite; }
-        .drone-typing { animation: droneTypePulse 0.8s ease-in-out infinite; }
+        @keyframes typingMouth {
+          0%,100% { d: path("M 33 60 Q 50 65 67 60"); }
+          50%   { d: path("M 33 63 Q 50 57 67 63"); }
+        }
+        @keyframes scanLine {
+          from { transform: translateY(0); opacity: 0.6; }
+          to { transform: translateY(24px); opacity: 0; }
+        }
+        @keyframes bodyGlow {
+          0%,100% { opacity: 0.08; }
+          50% { opacity: 0.2; }
+        }
+        .drone-wrap { animation: ${floating ? 'droneFloat 3s ease-in-out infinite' : 'none'}; }
+        .drone-glow { animation: glowPulse 2.5s ease-in-out infinite; }
+        .drone-eye-l { animation: eyeBlink 5s infinite 0.1s; transform-box: fill-box; transform-origin: 50% 50%; }
+        .drone-eye-r { animation: eyeBlink 5s infinite 0.4s; transform-box: fill-box; transform-origin: 50% 50%; }
+        .drone-antenna { animation: antennaGlow 1.6s ease-in-out infinite; }
+        .rotor-l { transform-origin: 18px 86px; animation: rotorSpin 0.25s linear infinite; }
+        .rotor-r { transform-origin: 82px 86px; animation: rotorSpin 0.25s linear infinite reverse; }
+        .scan-line { animation: scanLine 1.2s linear infinite; }
+        .body-inner-glow { animation: bodyGlow 2s ease-in-out infinite; }
       `}</style>
-      <svg viewBox="0 0 100 100" width={size} height={size} fill="none" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <linearGradient id="bodyGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#10B981"/>
-            <stop offset="100%" stopColor="#059669"/>
-          </linearGradient>
-          <linearGradient id="faceGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#ECFDF5"/>
-            <stop offset="100%" stopColor="#D1FAE5"/>
-          </linearGradient>
-          <filter id="glow">
-            <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
-            <feMerge>
-              <feMergeNode in="coloredBlur"/>
-              <feMergeNode in="SourceGraphic"/>
-            </feMerge>
-          </filter>
-        </defs>
+      <div className="drone-wrap" style={{ width: size, height: size, display: 'inline-block' }}>
+        <svg viewBox="0 0 100 100" width={size} height={size} className="drone-glow">
+          <defs>
+            <linearGradient id="dBodyGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#1D8A5A" />
+              <stop offset="100%" stopColor="#0D5C3C" />
+            </linearGradient>
+            <linearGradient id="dFaceGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#E0FEF4" />
+              <stop offset="100%" stopColor="#CCFBEB" />
+            </linearGradient>
+            <linearGradient id="dRotorGrad" x1="-1" y1="0" x2="1" y2="0" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stopColor="#10B981" stopOpacity="0.9" />
+              <stop offset="50%" stopColor="#6EE7B7" />
+              <stop offset="100%" stopColor="#10B981" stopOpacity="0.9" />
+            </linearGradient>
+            <filter id="dShadow" x="-20%" y="-20%" width="140%" height="140%">
+              <feDropShadow dx="0" dy="2" stdDeviation="3" floodColor="#059669" floodOpacity="0.4" />
+            </filter>
+          </defs>
 
-        {/* Antenna */}
-        <line x1="50" y1="6" x2="50" y2="16" stroke="#059669" strokeWidth="2.5" strokeLinecap="round"/>
-        <circle cx="50" cy="5" r="3.5" fill={isTyping ? undefined : "#10B981"} filter="url(#glow)"
-          className={isTyping ? 'drone-typing drone-antenna' : 'drone-antenna'}
-        />
+          {/* Antenna post */}
+          <line x1="50" y1="4" x2="50" y2="16" stroke="#059669" strokeWidth="2" strokeLinecap="round" />
+          {/* Antenna tip */}
+          <circle className="drone-antenna" cx="50" cy="3.5" r="3" />
 
-        {/* Body */}
-        <rect x="20" y="22" width="60" height="52" rx="16" fill="url(#bodyGrad)" />
-        
-        {/* Body highlight */}
-        <rect x="24" y="24" width="52" height="20" rx="10" fill="rgba(255,255,255,0.15)" />
+          {/* Main body */}
+          <rect x="18" y="18" width="64" height="56" rx="16" fill="url(#dBodyGrad)" filter="url(#dShadow)" />
 
-        {/* Face screen */}
-        <rect x="24" y="30" width="52" height="34" rx="10" fill="url(#faceGrad)" />
+          {/* Inner glow overlay */}
+          <rect className="body-inner-glow" x="22" y="22" width="56" height="48" rx="12" fill="#10B981" />
 
-        {/* Eyes */}
-        <g className="drone-eye">
-          <rect x="31" y="38" width="14" height="12" rx="4" fill="#059669" />
-          <circle cx="36" cy="44" r="3" fill="#ECFDF5" />
-          <circle cx="37" cy="43" r="1.5" fill="#1C1917" />
-        </g>
-        <g className="drone-eye">
-          <rect x="55" y="38" width="14" height="12" rx="4" fill="#059669" />
-          <circle cx="60" cy="44" r="3" fill="#ECFDF5" />
-          <circle cx="61" cy="43" r="1.5" fill="#1C1917" />
-        </g>
+          {/* Face screen */}
+          <rect x="22" y="26" width="56" height="38" rx="10" fill="url(#dFaceGrad)" />
 
-        {/* Mouth */}
-        {isTyping ? (
-          /* Thinking dots */
-          <g>
-            <circle cx="40" cy="58" r="2.5" fill="#059669" style={{ animation: 'droneGlow 0.6s infinite 0s' }} />
-            <circle cx="50" cy="58" r="2.5" fill="#059669" style={{ animation: 'droneGlow 0.6s infinite 0.2s' }} />
-            <circle cx="60" cy="58" r="2.5" fill="#059669" style={{ animation: 'droneGlow 0.6s infinite 0.4s' }} />
+          {/* Scanline (typing mode) */}
+          {isTyping && (
+            <rect className="scan-line" x="22" y="26" width="56" height="3" rx="1" fill="#10B98144" />
+          )}
+
+          {/* Left Eye */}
+          <g className="drone-eye-l">
+            <rect x="29" y="36" width="15" height="13" rx="5" fill="#059669" />
+            <circle cx="34" cy="42.5" r="3.5" fill="#E0FEF4" />
+            <circle cx="35.2" cy="41.5" r="2" fill="#0F172A" />
+            <circle cx="36.5" cy="40.5" r="0.8" fill="#fff" opacity="0.8" />
           </g>
-        ) : (
-          <path d="M 36 57 Q 50 66 64 57" stroke="#10B981" strokeWidth="3" strokeLinecap="round" />
-        )}
 
-        {/* Ear bolts */}
-        <circle cx="20" cy="46" r="4" fill="#047857" />
-        <circle cx="80" cy="46" r="4" fill="#047857" />
-        <circle cx="20" cy="46" r="2" fill="#10B981" />
-        <circle cx="80" cy="46" r="2" fill="#10B981" />
+          {/* Right Eye */}
+          <g className="drone-eye-r">
+            <rect x="56" y="36" width="15" height="13" rx="5" fill="#059669" />
+            <circle cx="61" cy="42.5" r="3.5" fill="#E0FEF4" />
+            <circle cx="62.2" cy="41.5" r="2" fill="#0F172A" />
+            <circle cx="63.5" cy="40.5" r="0.8" fill="#fff" opacity="0.8" />
+          </g>
 
-        {/* Propeller arms */}
-        <line x1="20" y1="72" x2="8" y2="82" stroke="#059669" strokeWidth="3" strokeLinecap="round"/>
-        <line x1="80" y1="72" x2="92" y2="82" stroke="#059669" strokeWidth="3" strokeLinecap="round"/>
+          {/* Mouth */}
+          {isTyping ? (
+            /* Animated typing dots */
+            <>
+              <circle cx="39" cy="58" r="2.5" fill="#059669" style={{ animation: 'antennaGlow 0.6s infinite 0s' }} />
+              <circle cx="50" cy="58" r="2.5" fill="#059669" style={{ animation: 'antennaGlow 0.6s infinite 0.2s' }} />
+              <circle cx="61" cy="58" r="2.5" fill="#059669" style={{ animation: 'antennaGlow 0.6s infinite 0.4s' }} />
+            </>
+          ) : (
+            <path d="M 34 58 Q 50 68 66 58" stroke="#059669" strokeWidth="3.5" strokeLinecap="round" fill="none" />
+          )}
 
-        {/* Propeller rotors */}
-        <ellipse cx="8" cy="84" rx="7" ry="2.5" fill="#10B981" opacity="0.7" style={{ transformOrigin: '8px 84px', animation: 'droneSpin 0.4s linear infinite' }} />
-        <ellipse cx="92" cy="84" rx="7" ry="2.5" fill="#10B981" opacity="0.7" style={{ transformOrigin: '92px 84px', animation: 'droneSpin 0.4s linear infinite reverse' }} />
-      </svg>
-    </div>
+          {/* Cheek indicator lights */}
+          <circle cx="22" cy="47" r="3.5" fill="#0D5C3C" />
+          <circle cx="22" cy="47" r="1.8" fill="#10B981" style={{ animation: 'antennaGlow 2.5s infinite 0.5s' }} />
+          <circle cx="78" cy="47" r="3.5" fill="#0D5C3C" />
+          <circle cx="78" cy="47" r="1.8" fill="#10B981" style={{ animation: 'antennaGlow 2.5s infinite 0.8s' }} />
+
+          {/* Arm struts */}
+          <line x1="24" y1="70" x2="10" y2="84" stroke="#059669" strokeWidth="3" strokeLinecap="round" />
+          <line x1="76" y1="70" x2="90" y2="84" stroke="#059669" strokeWidth="3" strokeLinecap="round" />
+
+          {/* Rotors */}
+          <ellipse className="rotor-l" cx="18" cy="86" rx="11" ry="3" fill="url(#dRotorGrad)" opacity="0.85" />
+          <ellipse className="rotor-r" cx="82" cy="86" rx="11" ry="3" fill="url(#dRotorGrad)" opacity="0.85" />
+
+          {/* Rotor hubs */}
+          <circle cx="18" cy="86" r="2" fill="#059669" />
+          <circle cx="82" cy="86" r="2" fill="#059669" />
+        </svg>
+      </div>
+    </>
   );
 }
 
-// ── QUICK PROMPTS ───────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════════
+// QUICK PROMPT CHIPS
+// ════════════════════════════════════════════════════════════════
 const QUICK_PROMPTS = [
-  '🔴 Critical needs now',
-  '👥 Top volunteers',
-  '📍 Dharavi status',
-  '🌊 Flood zones',
+  { label: '🔴 Critical needs', query: '🔴 Critical needs now' },
+  { label: '👥 Top volunteers', query: '👥 Top volunteers' },
+  { label: '📍 Dharavi status', query: '📍 Dharavi status' },
+  { label: '🌊 Flood zones', query: '🌊 Flood zones' },
 ];
 
+const DEMO_RESPONSES: Record<string, string> = {
+  '🔴 Critical needs now': 'We have 12 critical needs right now. Top 3: (1) Emergency Medical Camp — Dharavi, Mumbai — 2,500 affected. (2) Flood Relief — Silchar, Assam — 15,000 affected. (3) Bridge Washout — Tapovan — 800 affected.',
+  '👥 Top volunteers': 'Top available volunteers: Dr. Arun Mehta (94% score, Medical, Mumbai), Priya Nair (91%, Nursing, Kerala), Anjali Krishnan (88%, Teaching, Bangalore).',
+  '📍 Dharavi status': 'Dharavi Medical Camp is CRITICAL (98% urgency). 2,500 people affected. Dr. Arun Mehta is AI-matched (94% compatibility) and awaiting dispatch confirmation.',
+  '🌊 Flood zones': 'Active flood zones: Silchar, Assam (CRITICAL — 15,000 affected), Barpeta, Assam (HIGH — 3,200 affected). 3 need deserts detected in NE India.',
+};
+
+// ════════════════════════════════════════════════════════════════
+// CHAT PANEL
+// ════════════════════════════════════════════════════════════════
 export default function ChatPanel({ isOpen, onClose }: Props) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
@@ -141,7 +186,7 @@ export default function ChatPanel({ isOpen, onClose }: Props) {
 
   useEffect(() => {
     if (!isOpen) return;
-    setTimeout(() => inputRef.current?.focus(), 300);
+    setTimeout(() => inputRef.current?.focus(), 400);
     try {
       const ws = createChatWebSocket();
       wsRef.current = ws;
@@ -152,9 +197,7 @@ export default function ChatPanel({ isOpen, onClose }: Props) {
         setMessages(prev => [...prev, { role: 'assistant', text: e.data }]);
       };
       return () => ws.close();
-    } catch {
-      setConnected(false);
-    }
+    } catch { setConnected(false); }
   }, [isOpen]);
 
   useEffect(() => {
@@ -162,26 +205,21 @@ export default function ChatPanel({ isOpen, onClose }: Props) {
   }, [messages, isTyping]);
 
   function send(text?: string) {
-    const userText = text ?? input;
-    if (!userText.trim()) return;
+    const userText = (text ?? input).trim();
+    if (!userText) return;
     setMessages(prev => [...prev, { role: 'user', text: userText }]);
     setInput('');
 
-    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+    if (wsRef.current?.readyState === WebSocket.OPEN) {
       wsRef.current.send(userText);
     } else {
       setIsTyping(true);
       setTimeout(() => {
-        const demoResponses: Record<string, string> = {
-          '🔴 Critical needs now': 'There are 12 critical needs right now. The top 3 are: (1) Emergency Medical Camp — Dharavi, Mumbai — 2,500 affected. (2) Flood Relief — Silchar, Assam — 15,000 affected. (3) Bridge Washout — Tapovan — 800 affected.',
-          '👥 Top volunteers': 'Our top available volunteers are Dr. Arun Mehta (Score: 94%, Medical), Priya Krishnamurthy (Score: 88%, Logistics), and Ramesh Patel (Score: 82%, Engineering).',
-          '📍 Dharavi status': 'Dharavi Medical Camp is at CRITICAL urgency (98%). 2,500 people are affected. Dr. Arun Mehta has been AI-matched with a 94% compatibility score. Awaiting dispatch confirmation.',
-          '🌊 Flood zones': 'Active flood zones: Silchar, Assam (HIGH - 15,000 affected), Barpeta, Assam (MODERATE - 3,200 affected). 3 need deserts also detected in the northeast region.',
-        };
-        const reply = demoResponses[userText] || `I understand you're asking about "${userText}". In demo mode, I can confirm we have 12 active needs across India and 156 volunteers currently active. The most critical area is Dharavi, Mumbai.`;
+        const reply = DEMO_RESPONSES[userText] ??
+          `In demo mode, I can tell you we have 12 active critical needs tracked across India and 156 volunteers currently available. The most critical area is Dharavi, Mumbai. Ask me for specifics!`;
         setMessages(prev => [...prev, { role: 'assistant', text: reply }]);
         setIsTyping(false);
-      }, 1800);
+      }, 1600);
     }
   }
 
@@ -190,146 +228,157 @@ export default function ChatPanel({ isOpen, onClose }: Props) {
   return (
     <>
       {/* Backdrop */}
-      <div
+      <motion.div
+        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
         onClick={onClose}
-        style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.4)', backdropFilter: 'blur(6px)', zIndex: 999 }}
+        style={{ position: 'fixed', inset: 0, background: 'rgba(2,10,20,0.5)', backdropFilter: 'blur(8px)', zIndex: 999 }}
       />
 
       {/* Panel */}
-      <div style={{
-        position: 'fixed', top: 0, right: 0, bottom: 0,
-        width: 440, maxWidth: '100vw',
-        background: '#F8FAFC',
-        boxShadow: '-12px 0 40px rgba(0,0,0,0.15)',
-        zIndex: 1000, display: 'flex', flexDirection: 'column',
-        animation: 'chatSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards',
-      }}>
-        <style>{`
-          @keyframes chatSlideIn {
-            from { transform: translateX(100%); }
-            to { transform: translateX(0); }
-          }
-          @keyframes msgPop {
-            from { opacity: 0; transform: translateY(12px) scale(0.95); }
-            to { opacity: 1; transform: translateY(0) scale(1); }
-          }
-        `}</style>
+      <motion.div
+        initial={{ x: '100%', opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        exit={{ x: '100%', opacity: 0 }}
+        transition={{ type: 'spring', damping: 28, stiffness: 250 }}
+        style={{
+          position: 'fixed', top: 0, right: 0, bottom: 0,
+          width: 460, maxWidth: '100vw',
+          background: 'linear-gradient(180deg, #0F1F16 0%, #0A1710 100%)',
+          zIndex: 1000, display: 'flex', flexDirection: 'column',
+          boxShadow: '-16px 0 48px rgba(0,0,0,0.3)',
+          overflow: 'hidden',
+        }}
+      >
+        {/* Subtle grid background */}
+        <div style={{ position: 'absolute', inset: 0, backgroundImage: 'radial-gradient(circle at 50% 0%, rgba(16,185,129,0.12) 0%, transparent 60%)', pointerEvents: 'none' }} />
 
-        {/* Header */}
-        <div style={{
-          padding: '20px 24px', background: 'linear-gradient(135deg, #059669, #10B981)',
-          display: 'flex', alignItems: 'center', gap: 16,
-          boxShadow: '0 4px 16px rgba(5, 150, 105, 0.3)',
-        }}>
-          <div style={{ flexShrink: 0, background: 'rgba(255,255,255,0.15)', borderRadius: 16, padding: 6 }}>
-            <SevaDrone size={52} idle isTyping={isTyping} />
-          </div>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 18, fontWeight: 700, color: '#fff', fontFamily: 'var(--font-heading)', letterSpacing: '-0.01em' }}>SevaBot</div>
-            <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.8)', marginTop: 2, display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span style={{ width: 6, height: 6, borderRadius: '50%', background: connected ? '#A7F3D0' : 'rgba(255,255,255,0.5)', display: 'inline-block' }} />
-              {isTyping ? 'Analyzing needs data…' : connected ? 'Live — Backend Connected' : 'Demo Mode Active'}
+        {/* ── Header ── */}
+        <div style={{ padding: '20px 24px 0', position: 'relative', zIndex: 1 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+              <div style={{ background: 'rgba(16,185,129,0.12)', borderRadius: 20, padding: '8px 10px', border: '1px solid rgba(16,185,129,0.2)' }}>
+                <SevaDrone size={56} floating isTyping={isTyping} />
+              </div>
+              <div>
+                <div style={{ fontSize: 20, fontWeight: 800, color: '#fff', fontFamily: 'var(--font-heading)', letterSpacing: '-0.01em' }}>SevaBot</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 2 }}>
+                  <span style={{ width: 7, height: 7, borderRadius: '50%', background: isTyping ? '#F59E0B' : connected ? '#10B981' : '#6EE7B7', display: 'inline-block', boxShadow: `0 0 6px ${isTyping ? '#F59E0B' : '#10B981'}` }} />
+                  <span style={{ fontSize: 12, color: '#6EE7B7', fontWeight: 600 }}>
+                    {isTyping ? 'Analyzing data…' : connected ? 'Live Connected' : 'Demo Mode'}
+                  </span>
+                </div>
+              </div>
             </div>
+            <button onClick={onClose} style={{
+              background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10,
+              color: '#94A3B8', cursor: 'pointer', width: 34, height: 34, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16,
+              transition: 'all 150ms',
+            }}
+              onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.12)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.06)'}
+            >✕</button>
           </div>
-          <button onClick={onClose} style={{
-            background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: 10, fontSize: 18,
-            cursor: 'pointer', color: '#fff', width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}>✕</button>
+          <div style={{ height: 1, background: 'linear-gradient(90deg, rgba(16,185,129,0.3), transparent)', marginTop: 20 }} />
         </div>
 
-        {/* Messages */}
-        <div style={{ flex: 1, overflow: 'auto', padding: '24px 20px' }}>
+        {/* ── Messages ── */}
+        <div style={{ flex: 1, overflowY: 'auto', padding: '20px 20px 12px', position: 'relative', zIndex: 1 }}>
           {messages.length === 0 && (
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
-                <SevaDrone size={90} idle />
+            <div style={{ textAlign: 'center', paddingTop: 12 }}>
+              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 20 }}>
+                <SevaDrone size={110} floating />
               </div>
-              <p style={{ fontSize: 18, fontWeight: 700, margin: '0 0 4px', color: '#1C1917', fontFamily: 'var(--font-heading)' }}>Hi, I'm SevaBot! 👋</p>
-              <p style={{ fontSize: 13, color: '#64748B', margin: '0 0 24px', lineHeight: 1.6 }}>
-                I have live access to all needs,<br/>volunteers and regional data.
+              <div style={{ fontSize: 20, fontWeight: 800, color: '#fff', marginBottom: 6, fontFamily: 'var(--font-heading)' }}>Hi, I'm SevaBot! 👋</div>
+              <p style={{ fontSize: 14, color: '#6EE7B7', margin: '0 0 28px', lineHeight: 1.6 }}>
+                I have live access to all needs,<br />volunteers and regional crisis data.
               </p>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                 {QUICK_PROMPTS.map(p => (
-                  <button key={p} onClick={() => send(p)} style={{
-                    background: '#fff', border: '1px solid #E2E8F0', borderRadius: 12,
-                    padding: '10px 12px', fontSize: 12, fontWeight: 600, color: '#475569',
-                    cursor: 'pointer', textAlign: 'left', transition: 'all 150ms',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+                  <button key={p.label} onClick={() => send(p.query)} style={{
+                    background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.2)',
+                    borderRadius: 12, padding: '11px 14px', fontSize: 13, fontWeight: 600, color: '#A7F3D0',
+                    cursor: 'pointer', textAlign: 'left', transition: 'all 150ms', lineHeight: 1.3,
                   }}
-                    onMouseEnter={e => { e.currentTarget.style.borderColor = '#059669'; e.currentTarget.style.color = '#059669'; }}
-                    onMouseLeave={e => { e.currentTarget.style.borderColor = '#E2E8F0'; e.currentTarget.style.color = '#475569'; }}
-                  >{p}</button>
+                    onMouseEnter={e => { e.currentTarget.style.background = 'rgba(16,185,129,0.16)'; e.currentTarget.style.borderColor = 'rgba(16,185,129,0.4)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'rgba(16,185,129,0.08)'; e.currentTarget.style.borderColor = 'rgba(16,185,129,0.2)'; }}
+                  >{p.label}</button>
                 ))}
               </div>
             </div>
           )}
 
-          {messages.map((m, i) => (
-            <div key={i} style={{
-              marginBottom: 16,
-              display: 'flex', flexDirection: m.role === 'user' ? 'row-reverse' : 'row',
-              alignItems: 'flex-end', gap: 10,
-              animation: 'msgPop 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards'
-            }}>
-              {m.role === 'assistant' && (
-                <div style={{ flexShrink: 0, background: 'linear-gradient(135deg, #059669, #10B981)', borderRadius: 12, padding: 4 }}>
-                  <SevaDrone size={28} />
+          <AnimatePresence>
+            {messages.map((m, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 14, scale: 0.96 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                style={{
+                  marginBottom: 16, display: 'flex',
+                  flexDirection: m.role === 'user' ? 'row-reverse' : 'row',
+                  alignItems: 'flex-end', gap: 10,
+                }}
+              >
+                {m.role === 'assistant' && (
+                  <div style={{ flexShrink: 0, background: 'rgba(16,185,129,0.12)', borderRadius: 12, padding: '4px 5px', border: '1px solid rgba(16,185,129,0.2)' }}>
+                    <SevaDrone size={28} />
+                  </div>
+                )}
+                <div style={{
+                  maxWidth: '76%', padding: '12px 16px', fontSize: 14, lineHeight: 1.65,
+                  borderRadius: m.role === 'user' ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
+                  background: m.role === 'user'
+                    ? 'linear-gradient(135deg, #059669, #10B981)'
+                    : 'rgba(255,255,255,0.06)',
+                  color: m.role === 'user' ? '#fff' : '#E2E8F0',
+                  border: m.role === 'user' ? 'none' : '1px solid rgba(255,255,255,0.08)',
+                  boxShadow: m.role === 'user' ? '0 4px 16px rgba(5,150,105,0.3)' : 'none',
+                }}>
+                  {m.text}
                 </div>
-              )}
-              <div style={{
-                maxWidth: '75%', padding: '12px 16px', borderRadius: 18,
-                borderBottomRightRadius: m.role === 'user' ? 4 : 18,
-                borderBottomLeftRadius: m.role === 'assistant' ? 4 : 18,
-                fontSize: 14, lineHeight: 1.6,
-                background: m.role === 'user'
-                  ? 'linear-gradient(135deg, #059669, #10B981)'
-                  : '#fff',
-                color: m.role === 'user' ? '#fff' : '#334155',
-                boxShadow: m.role === 'user'
-                  ? '0 4px 12px rgba(5,150,105,0.3)'
-                  : '0 2px 12px rgba(0,0,0,0.06)',
-              }}>
-                {m.text}
-              </div>
-            </div>
-          ))}
+              </motion.div>
+            ))}
+          </AnimatePresence>
 
           {isTyping && (
-            <div style={{ display: 'flex', alignItems: 'flex-end', gap: 10, marginBottom: 16, animation: 'msgPop 0.3s forwards' }}>
-              <div style={{ flexShrink: 0, background: 'linear-gradient(135deg, #059669, #10B981)', borderRadius: 12, padding: 4 }}>
+            <motion.div
+              initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+              style={{ display: 'flex', alignItems: 'flex-end', gap: 10, marginBottom: 16 }}
+            >
+              <div style={{ flexShrink: 0, background: 'rgba(16,185,129,0.12)', borderRadius: 12, padding: '4px 5px', border: '1px solid rgba(16,185,129,0.2)' }}>
                 <SevaDrone size={28} isTyping />
               </div>
-              <div style={{ background: '#fff', borderRadius: '18px 18px 18px 4px', padding: '14px 18px', boxShadow: '0 2px 12px rgba(0,0,0,0.06)', display: 'flex', gap: 5, alignItems: 'center' }}>
-                {[0, 0.2, 0.4].map(delay => (
-                  <span key={delay} style={{ width: 7, height: 7, borderRadius: '50%', background: '#10B981', display: 'inline-block', animation: `droneGlow 1s ease-in-out ${delay}s infinite` }} />
+              <div style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '16px 16px 16px 4px', padding: '14px 18px', display: 'flex', gap: 5, alignItems: 'center' }}>
+                {[0, 0.25, 0.5].map(delay => (
+                  <span key={delay} style={{ width: 7, height: 7, borderRadius: '50%', background: '#10B981', display: 'inline-block', animation: `antennaGlow 1s ease-in-out ${delay}s infinite` }} />
                 ))}
               </div>
-            </div>
+            </motion.div>
           )}
           <div ref={bottomRef} />
         </div>
 
-        {/* Input */}
-        <div style={{ padding: '16px 20px 24px', background: '#fff', borderTop: '1px solid #E2E8F0' }}>
-          <div style={{ display: 'flex', gap: 10, background: '#F8FAFC', borderRadius: 16, padding: '6px 6px 6px 16px', border: '2px solid #E2E8F0', transition: 'border-color 200ms' }}
-            onFocus={() => { }} // visual only
-          >
+        {/* ── Input ── */}
+        <div style={{ padding: '16px 20px 24px', borderTop: '1px solid rgba(255,255,255,0.06)', position: 'relative', zIndex: 1 }}>
+          <div style={{ display: 'flex', gap: 10, background: 'rgba(255,255,255,0.05)', borderRadius: 16, padding: '6px 6px 6px 16px', border: '1px solid rgba(16,185,129,0.2)', transition: 'border-color 200ms' }}>
             <input
               ref={inputRef}
               value={input}
               onChange={e => setInput(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter') send(); }}
-              placeholder="Ask about needs, volunteers, regions…"
-              style={{ flex: 1, border: 'none', background: 'transparent', fontSize: 14, outline: 'none', color: '#1C1917', fontFamily: 'var(--font-body)' }}
+              placeholder="Ask about needs, volunteers, disasters…"
+              style={{ flex: 1, border: 'none', background: 'transparent', fontSize: 14, outline: 'none', color: '#E2E8F0', fontFamily: 'var(--font-body)' }}
             />
             <button
               onClick={() => send()}
               disabled={!input.trim()}
               style={{
                 width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                background: input.trim() ? 'linear-gradient(135deg, #059669, #10B981)' : '#E2E8F0',
-                color: '#fff', border: 'none', borderRadius: 12, cursor: input.trim() ? 'pointer' : 'default',
-                transition: 'all 200ms', flexShrink: 0,
+                background: input.trim() ? 'linear-gradient(135deg, #059669, #10B981)' : 'rgba(255,255,255,0.06)',
+                color: input.trim() ? '#fff' : '#475569', border: 'none', borderRadius: 12,
+                cursor: input.trim() ? 'pointer' : 'default', transition: 'all 200ms', flexShrink: 0,
+                boxShadow: input.trim() ? '0 4px 12px rgba(5,150,105,0.4)' : 'none',
               }}
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -337,9 +386,11 @@ export default function ChatPanel({ isOpen, onClose }: Props) {
               </svg>
             </button>
           </div>
-          <p style={{ fontSize: 11, color: '#94A3B8', margin: '8px 0 0', textAlign: 'center' }}>SevaBot is in demo mode — real AI connects to the backend</p>
+          <p style={{ fontSize: 11, color: '#334155', margin: '8px 0 0', textAlign: 'center', fontWeight: 500 }}>
+            SevaBot runs in demo mode · Real AI connects to backend
+          </p>
         </div>
-      </div>
+      </motion.div>
     </>
   );
 }

@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MOCK_STATS, MOCK_HEATMAP, MOCK_DESERTS, MOCK_VOL_LOCATIONS, MOCK_ACTIVITY } from '@/lib/mock-data';
 import StatsCard from '@/app/components/StatsCard';
@@ -14,6 +15,7 @@ import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer, B
 const fadeUp = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } };
 
 export default function DashboardPage() {
+  const router = useRouter();
   const stats = MOCK_STATS;
   const [showVol, setShowVol] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
@@ -192,10 +194,13 @@ export default function DashboardPage() {
                   <div style={{ fontSize: 20, fontWeight: 700, color: '#1C1917' }}>{formatPercent(selectedHotspot.urgency)}</div>
                   <div style={{ fontSize: 11, fontWeight: 600, color: '#78716C', textTransform: 'uppercase' }}>Urgency Level</div>
                 </div>
-                <button style={{ 
-                  background: '#1C1917', color: '#fff', border: 'none', borderRadius: 12, padding: '0 24px',
-                  fontSize: 14, fontWeight: 600, cursor: 'pointer', marginLeft: 'auto'
-                }}>
+                <button
+                  onClick={() => router.push(`/needs/${selectedHotspot.need_id || 'n1'}`)}
+                  style={{ 
+                    background: 'linear-gradient(135deg, #059669, #10B981)', color: '#fff', border: 'none', borderRadius: 12, padding: '0 24px',
+                    fontSize: 14, fontWeight: 700, cursor: 'pointer', marginLeft: 'auto',
+                    boxShadow: '0 4px 16px rgba(5,150,105,0.3)',
+                  }}>
                   Find Matches →
                 </button>
               </div>
