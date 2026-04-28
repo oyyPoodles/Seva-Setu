@@ -1,5 +1,7 @@
 # 🚀 SevaSetu – AI-Powered Smart Resource Allocation Platform
 
+MVP Link: https://sevasetu-242a8.web.app/
+
 > **Bridging community needs with the right help using AI**
 
 ---
