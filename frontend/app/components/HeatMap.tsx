@@ -1,7 +1,7 @@
 'use client';
 import { useState, useMemo, useEffect } from 'react';
 import DeckGL from '@deck.gl/react';
-import { ScatterplotLayer } from '@deck.gl/layers';
+import { ScatterplotLayer, IconLayer } from '@deck.gl/layers';
 import { Map } from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { HeatmapPoint, DesertZone, VolunteerLocation } from '@/lib/api';
@@ -31,31 +31,34 @@ const MAP_STYLE = 'https://basemaps.cartocdn.com/gl/positron-nolabels-gl-style/s
 export default function HeatMap({ points, deserts = [], volunteerLocations = [], showVolunteers, onHotspotClick }: Props) {
   const [viewState, setViewState] = useState(INITIAL_VIEW_STATE);
   const [hoverInfo, setHoverInfo] = useState<any>(null);
+  const [selectedVol, setSelectedVol] = useState<VolunteerLocation | null>(null);
+  const [volCardPos, setVolCardPos] = useState({ x: 0, y: 0 });
 
   const needsLayer = new ScatterplotLayer({
     id: 'needs-layer',
     data: points,
     pickable: true,
-    opacity: 0.8,
+    opacity: 0.85,
     stroked: true,
     filled: true,
     radiusScale: 1000,
-    radiusMinPixels: 4,
-    radiusMaxPixels: 30,
-    lineWidthMinPixels: 1,
+    radiusMinPixels: 5,
+    radiusMaxPixels: 32,
+    lineWidthMinPixels: 1.5,
     getPosition: (d) => [d.longitude, d.latitude],
     getFillColor: (d) => {
       const hex = urgencyColor(d.urgency ?? 0.5);
       const r = parseInt(hex.slice(1, 3), 16);
       const g = parseInt(hex.slice(3, 5), 16);
       const b = parseInt(hex.slice(5, 7), 16);
-      return [r, g, b, 200];
+      return [r, g, b, 210];
     },
-    getLineColor: (d) => [255, 255, 255, 255],
-    getRadius: (d) => d.affected_count ? Math.max(15, Math.log2(d.affected_count) * 8) : 15,
+    getLineColor: [255, 255, 255, 255],
+    getRadius: (d) => d.affected_count ? Math.max(15, Math.log2(d.affected_count) * 9) : 15,
     onHover: (info) => setHoverInfo(info),
     onClick: (info) => {
       if (info.object) {
+        setSelectedVol(null); // close volunteer card
         setViewState({
           ...viewState,
           longitude: info.object.longitude,
@@ -64,45 +67,61 @@ export default function HeatMap({ points, deserts = [], volunteerLocations = [],
           transitionDuration: 800,
           transitionInterpolator: new FlyToInterpolator()
         });
-        if (onHotspotClick) {
-          onHotspotClick(info.object as HeatmapPoint);
-        }
+        if (onHotspotClick) onHotspotClick(info.object as HeatmapPoint);
       }
     },
-    transitions: {
-      getRadius: { duration: 500, enter: value => [0] }
-    }
+    transitions: { getRadius: { duration: 500, enter: () => [0] } }
   });
 
+  // Volunteer layer - bigger colorful dots like proper pins
   const volLayer = new ScatterplotLayer({
     id: 'vol-layer',
     data: volunteerLocations,
     visible: showVolunteers,
     pickable: true,
-    opacity: 0.9,
+    opacity: 1,
     stroked: true,
     filled: true,
     radiusScale: 1000,
-    radiusMinPixels: 2,
-    radiusMaxPixels: 6,
-    lineWidthMinPixels: 1,
+    radiusMinPixels: 6,
+    radiusMaxPixels: 14,
+    lineWidthMinPixels: 2.5,
     getPosition: (d) => [d.longitude, d.latitude],
-    getFillColor: [37, 99, 235, 255], // #2563EB
+    getFillColor: [37, 99, 235, 240],   // vibrant blue
     getLineColor: [255, 255, 255, 255],
-    getRadius: 5,
-    onHover: (info) => setHoverInfo({ ...info, isVol: true }),
-    transitions: {
-      getRadius: { duration: 500, enter: value => [0] }
-    }
+    getRadius: 8,
+    onHover: (info) => {
+      if (info.object) {
+        setHoverInfo({ ...info, isVol: true });
+      } else {
+        setHoverInfo(null);
+      }
+    },
+    onClick: (info) => {
+      if (info.object) {
+        setSelectedVol(info.object as VolunteerLocation);
+        setVolCardPos({ x: info.x, y: info.y });
+        // Fly to volunteer
+        setViewState(v => ({
+          ...v,
+          longitude: info.object.longitude,
+          latitude: info.object.latitude,
+          zoom: 7,
+          transitionDuration: 600,
+          transitionInterpolator: new FlyToInterpolator()
+        }));
+      }
+    },
+    transitions: { getRadius: { duration: 500, enter: () => [0] } }
   });
 
+  // Pulse animation layer for critical/high urgency needs
   const [pulse, setPulse] = useState(0);
   useEffect(() => {
     let animationFrame: number;
-    let start = Date.now();
+    const start = Date.now();
     const animate = () => {
-      const now = Date.now();
-      const progress = ((now - start) % 2000) / 2000;
+      const progress = ((Date.now() - start) % 2000) / 2000;
       setPulse(progress);
       animationFrame = requestAnimationFrame(animate);
     };
@@ -116,7 +135,7 @@ export default function HeatMap({ points, deserts = [], volunteerLocations = [],
     id: 'pulse-layer',
     data: criticalPoints,
     pickable: false,
-    opacity: 1 - pulse,
+    opacity: (1 - pulse) * 0.6,
     stroked: true,
     filled: false,
     radiusScale: 1000,
@@ -128,72 +147,140 @@ export default function HeatMap({ points, deserts = [], volunteerLocations = [],
       const r = parseInt(hex.slice(1, 3), 16);
       const g = parseInt(hex.slice(3, 5), 16);
       const b = parseInt(hex.slice(5, 7), 16);
-      return [r, g, b, 255 * (1 - pulse)];
+      return [r, g, b, Math.floor(255 * (1 - pulse))];
     },
     getRadius: (d) => {
-      const baseR = d.affected_count ? Math.max(15, Math.log2(d.affected_count) * 8) : 15;
-      return baseR + (pulse * 30);
+      const baseR = d.affected_count ? Math.max(15, Math.log2(d.affected_count) * 9) : 15;
+      return baseR + pulse * 35;
     },
-    updateTriggers: {
-      getRadius: [pulse],
-      getLineColor: [pulse],
-      opacity: [pulse]
-    }
+    updateTriggers: { getRadius: [pulse], getLineColor: [pulse], opacity: [pulse] }
+  });
+
+  // Volunteer pulse layer (blue rings)
+  const volPulseLayer = new ScatterplotLayer({
+    id: 'vol-pulse-layer',
+    data: showVolunteers ? volunteerLocations : [],
+    pickable: false,
+    opacity: (1 - pulse) * 0.5,
+    stroked: true,
+    filled: false,
+    radiusScale: 1000,
+    radiusMinPixels: 3,
+    lineWidthMinPixels: 1.5,
+    getPosition: (d) => [d.longitude, d.latitude],
+    getLineColor: [37, 99, 235, Math.floor(255 * (1 - pulse))],
+    getRadius: () => 8 + pulse * 20,
+    updateTriggers: { getRadius: [pulse], getLineColor: [pulse], opacity: [pulse] }
   });
 
   return (
     <div style={{ position: 'absolute', inset: 0, overflow: 'hidden' }}>
       <DeckGL
         viewState={viewState}
-        onViewStateChange={({ viewState }) => setViewState(viewState)}
+        onViewStateChange={({ viewState }) => setViewState(viewState as typeof INITIAL_VIEW_STATE)}
         controller={{ doubleClickZoom: false }}
-        layers={[needsLayer, volLayer, pulseLayer]}
+        layers={[needsLayer, volLayer, pulseLayer, volPulseLayer]}
         getCursor={({ isHovering }) => isHovering ? 'pointer' : 'grab'}
+        onClick={() => { if (selectedVol) setSelectedVol(null); }}
       >
         <Map mapStyle={MAP_STYLE} />
       </DeckGL>
 
-      {hoverInfo && hoverInfo.object && (
+      {/* Need hover tooltip */}
+      {hoverInfo?.object && (
         <div style={{
-          position: 'absolute', zIndex: 1, pointerEvents: 'none',
+          position: 'absolute', zIndex: 5, pointerEvents: 'none',
           left: hoverInfo.x, top: hoverInfo.y, transform: 'translate(-50%, -120%)',
-          background: 'rgba(255, 255, 255, 0.85)', backdropFilter: 'blur(16px)',
-          padding: '12px 16px', borderRadius: 12,
-          boxShadow: '0 8px 32px rgba(0,0,0,0.1)', border: '1px solid rgba(255,255,255,0.6)',
-          color: '#1C1917', fontFamily: 'var(--font-body)', minWidth: 180
+          background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(20px)',
+          padding: '12px 16px', borderRadius: 14,
+          boxShadow: '0 12px 32px rgba(0,0,0,0.12)', border: '1px solid rgba(255,255,255,0.8)',
+          fontFamily: 'var(--font-body)', minWidth: 190, maxWidth: 240
         }}>
           {hoverInfo.isVol ? (
             <>
-              <div style={{ fontSize: 13, fontWeight: 700 }}>{hoverInfo.object.name}</div>
-              <div style={{ fontSize: 11, color: '#78716C', marginTop: 2 }}>{hoverInfo.object.skills.join(', ')}</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#2563EB', flexShrink: 0 }} />
+                <div style={{ fontSize: 13, fontWeight: 700 }}>{hoverInfo.object.name}</div>
+              </div>
+              <div style={{ fontSize: 11, color: '#64748B', lineHeight: 1.5 }}>{hoverInfo.object.skills?.join(' · ')}</div>
+              <div style={{ fontSize: 10, color: '#94A3B8', marginTop: 4 }}>Click to see full profile</div>
             </>
           ) : (
             <>
-              <div style={{ fontSize: 11, fontWeight: 700, color: urgencyColor(hoverInfo.object.urgency ?? 0.5), textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>
+              <div style={{ fontSize: 10, fontWeight: 700, color: urgencyColor(hoverInfo.object.urgency ?? 0.5), textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>
                 {formatNeedType(hoverInfo.object.need_type)}
               </div>
-              <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 4 }}>{hoverInfo.object.title}</div>
-              <div style={{ fontSize: 12, color: '#57534E', display: 'flex', gap: 6, alignItems: 'center' }}>
-                <span style={{ fontSize: 16 }}>👥</span> {hoverInfo.object.affected_count || 'Unknown'} affected
-              </div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: '#1C1917', marginBottom: 6, lineHeight: 1.3 }}>{hoverInfo.object.title}</div>
+              <div style={{ fontSize: 12, color: '#64748B' }}>👥 {hoverInfo.object.affected_count || '?'} affected</div>
+              <div style={{ fontSize: 10, color: '#94A3B8', marginTop: 4 }}>Click to see analytics</div>
             </>
           )}
-          <div style={{
-            position: 'absolute', bottom: -6, left: '50%', transform: 'translateX(-50%) rotate(45deg)',
-            width: 12, height: 12, background: 'rgba(255, 255, 255, 0.85)',
-            borderBottom: '1px solid rgba(255,255,255,0.6)', borderRight: '1px solid rgba(255,255,255,0.6)'
-          }} />
+          <div style={{ position: 'absolute', bottom: -7, left: '50%', transform: 'translateX(-50%) rotate(45deg)', width: 14, height: 14, background: 'rgba(255,255,255,0.92)', borderBottom: '1px solid rgba(0,0,0,0.05)', borderRight: '1px solid rgba(0,0,0,0.05)' }} />
+        </div>
+      )}
+
+      {/* Volunteer Flashcard Popup */}
+      {selectedVol && (
+        <div style={{
+          position: 'absolute', zIndex: 30,
+          left: Math.min(volCardPos.x + 16, window ? window.innerWidth - 320 : volCardPos.x + 16),
+          top: Math.max(volCardPos.y - 180, 16),
+          width: 300,
+          background: 'rgba(255,255,255,0.97)', backdropFilter: 'blur(24px)',
+          borderRadius: 20, border: '1px solid rgba(255,255,255,0.8)',
+          boxShadow: '0 24px 64px rgba(0,0,0,0.18)',
+          fontFamily: 'var(--font-body)',
+          animation: 'volCardIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+        }}>
+          <style>{`@keyframes volCardIn { from { opacity:0; transform:scale(0.92) translateY(8px); } to { opacity:1; transform:scale(1) translateY(0); } }`}</style>
+          
+          {/* Header */}
+          <div style={{ background: 'linear-gradient(135deg, #1E40AF, #2563EB)', padding: '20px 20px 16px', borderRadius: '20px 20px 0 0' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <div style={{ width: 48, height: 48, borderRadius: 14, background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, fontWeight: 700, color: '#fff' }}>
+                {selectedVol.name.charAt(0)}
+              </div>
+              <button onClick={() => setSelectedVol(null)} style={{ background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: 8, color: '#fff', cursor: 'pointer', width: 28, height: 28, fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+            </div>
+            <div style={{ marginTop: 10 }}>
+              <div style={{ fontSize: 16, fontWeight: 700, color: '#fff' }}>{selectedVol.name}</div>
+              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.75)', marginTop: 2 }}>
+                {selectedVol.has_vehicle ? '🚗 Has vehicle · ' : ''}Volunteer
+              </div>
+            </div>
+          </div>
+
+          {/* Body */}
+          <div style={{ padding: '16px 20px 20px' }}>
+            <div style={{ marginBottom: 12 }}>
+              <div style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#94A3B8', marginBottom: 6 }}>Skills</div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                {selectedVol.skills?.map(skill => (
+                  <span key={skill} style={{ background: '#EFF6FF', color: '#2563EB', fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 999 }}>{skill}</span>
+                ))}
+              </div>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ width: 8, height: 8, borderRadius: '50%', background: selectedVol.status === 'available' ? '#10B981' : '#F59E0B', flexShrink: 0 }} />
+              <span style={{ fontSize: 12, fontWeight: 600, color: '#334155', textTransform: 'capitalize' }}>{selectedVol.status}</span>
+            </div>
+          </div>
         </div>
       )}
       
       {/* Zoom Controls */}
       <div style={{ position: 'absolute', bottom: 24, left: 24, display: 'flex', flexDirection: 'column', gap: 8, zIndex: 10 }}>
-        <button onClick={() => setViewState(v => ({ ...v, zoom: v.zoom + 1, transitionDuration: 300, transitionInterpolator: new FlyToInterpolator() }))}
-          style={{ width: 40, height: 40, background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.5)', borderRadius: 10, cursor: 'pointer', boxShadow: '0 4px 16px rgba(0,0,0,0.1)', fontSize: 18, fontWeight: 500 }}>+</button>
-        <button onClick={() => setViewState(v => ({ ...v, zoom: v.zoom - 1, transitionDuration: 300, transitionInterpolator: new FlyToInterpolator() }))}
-          style={{ width: 40, height: 40, background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.5)', borderRadius: 10, cursor: 'pointer', boxShadow: '0 4px 16px rgba(0,0,0,0.1)', fontSize: 18, fontWeight: 500 }}>-</button>
-        <button onClick={() => setViewState({ ...INITIAL_VIEW_STATE })}
-          style={{ width: 40, height: 40, background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.5)', borderRadius: 10, cursor: 'pointer', boxShadow: '0 4px 16px rgba(0,0,0,0.1)', fontSize: 16 }}>↺</button>
+        {[
+          { label: '+', action: () => setViewState(v => ({ ...v, zoom: v.zoom + 1, transitionDuration: 300, transitionInterpolator: new FlyToInterpolator() })) },
+          { label: '−', action: () => setViewState(v => ({ ...v, zoom: v.zoom - 1, transitionDuration: 300, transitionInterpolator: new FlyToInterpolator() })) },
+          { label: '↺', action: () => setViewState({ ...INITIAL_VIEW_STATE }) }
+        ].map(({ label, action }) => (
+          <button key={label} onClick={action}
+            style={{ width: 40, height: 40, background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(12px)', border: '1px solid rgba(0,0,0,0.08)', borderRadius: 12, cursor: 'pointer', boxShadow: '0 4px 16px rgba(0,0,0,0.08)', fontSize: label === '↺' ? 16 : 20, fontWeight: 500, color: '#334155', transition: 'all 150ms' }}
+            onMouseEnter={e => e.currentTarget.style.background = '#F8FAFC'}
+            onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.92)'}
+          >{label}</button>
+        ))}
       </div>
     </div>
   );

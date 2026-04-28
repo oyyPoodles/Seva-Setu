@@ -9,7 +9,7 @@ import { formatNeedType, timeAgo, urgencyColor, formatPercent } from '@/lib/util
 import { HeatmapPoint } from '@/lib/api';
 
 // Recharts for Product-Grade Analytics
-import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis } from 'recharts';
+import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, LabelList } from 'recharts';
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } };
 
@@ -95,22 +95,41 @@ export default function DashboardPage() {
           overflow: 'hidden', zIndex: 10
         }}
       >
-        <div style={{ padding: '24px 24px 16px' }}>
-          <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 18, fontWeight: 700, margin: '0 0 16px', color: '#1C1917' }}>Needs by Category</h2>
-          <div style={{ height: 220, width: '100%' }}>
+        <div style={{ padding: '20px 20px 8px' }}>
+          <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 17, fontWeight: 700, margin: '0 0 12px', color: '#1C1917' }}>Needs by Category</h2>
+          <div style={{ position: 'relative', height: 180, width: '100%' }}>
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
-                <Pie data={categoryData} cx="50%" cy="50%" innerRadius={60} outerRadius={80} paddingAngle={4} dataKey="value" stroke="none">
+                <Pie data={categoryData} cx="50%" cy="50%" innerRadius={55} outerRadius={72} paddingAngle={3} dataKey="value" stroke="none">
                   {categoryData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
-                <RechartsTooltip 
-                  contentStyle={{ borderRadius: 12, border: 'none', boxShadow: '0 8px 24px rgba(0,0,0,0.12)', fontSize: 13, fontWeight: 600 }}
-                  itemStyle={{ color: '#1C1917' }}
+                <RechartsTooltip
+                  contentStyle={{ borderRadius: 12, border: 'none', boxShadow: '0 8px 24px rgba(0,0,0,0.12)', fontSize: 13, fontWeight: 600, padding: '8px 14px' }}
+                  formatter={(val: number, name: string) => [`${val} needs`, name]}
                 />
               </PieChart>
             </ResponsiveContainer>
+            {/* Center label */}
+            <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
+              <div style={{ fontSize: 26, fontWeight: 700, color: '#1C1917', fontFamily: 'var(--font-heading)', lineHeight: 1 }}>{categoryData.reduce((s, d) => s + d.value, 0)}</div>
+              <div style={{ fontSize: 10, fontWeight: 600, color: '#78716C', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: 2 }}>Total</div>
+            </div>
+          </div>
+          {/* Custom legend */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 8 }}>
+            {categoryData.map((entry, i) => {
+              const pct = Math.round((entry.value / categoryData.reduce((s, d) => s + d.value, 0)) * 100);
+              return (
+                <div key={entry.name} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ width: 10, height: 10, borderRadius: 3, background: COLORS[i % COLORS.length], flexShrink: 0 }} />
+                  <span style={{ fontSize: 12, color: '#475569', flex: 1, fontWeight: 500 }}>{entry.name}</span>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: '#1C1917' }}>{entry.value}</span>
+                  <span style={{ fontSize: 11, color: '#94A3B8', width: 32, textAlign: 'right' }}>{pct}%</span>
+                </div>
+              );
+            })}
           </div>
         </div>
 
