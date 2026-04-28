@@ -1,6 +1,7 @@
 'use client';
 import { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import Link from 'next/link';
 import { MOCK_NEEDS } from '@/lib/mock-data';
 import NeedCard from '@/app/components/NeedCard';
 import EmptyState from '@/app/components/EmptyState';
@@ -26,7 +27,7 @@ const cardVariants = {
   hidden: { opacity: 0, y: 20 },
   visible: (i: number) => ({
     opacity: 1, y: 0,
-    transition: { delay: i * 0.04, duration: 0.35, ease: [0.16, 1, 0.3, 1] }
+    transition: { delay: i * 0.04, duration: 0.35, ease: [0.16, 1, 0.3, 1] as const }
   }),
 };
 
@@ -88,7 +89,7 @@ export default function NeedsPage() {
                 {filtered.length} {filtered.length === 1 ? 'need' : 'needs'} {hasFilters ? 'match your filters' : 'reported across India'}
               </p>
             </div>
-            <a href="/needs/new" style={{
+            <Link href="/needs/new" style={{
               background: 'linear-gradient(135deg, #059669, #10B981)', color: '#fff', padding: '12px 24px',
               borderRadius: 12, fontSize: 14, fontWeight: 700, textDecoration: 'none',
               boxShadow: '0 4px 16px rgba(5,150,105,0.3)', display: 'flex', alignItems: 'center', gap: 8,
@@ -98,7 +99,7 @@ export default function NeedsPage() {
               onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
             >
               + Report a Need
-            </a>
+            </Link>
           </div>
         </motion.div>
 
@@ -156,7 +157,7 @@ export default function NeedsPage() {
               {type && <span style={{ background: '#EFF6FF', color: '#2563EB', fontSize: 12, fontWeight: 700, padding: '4px 12px', borderRadius: 999 }}>Type: {TYPE_LABELS[type]}</span>}
               {status && <span style={{ background: '#F0FDF4', color: '#16A34A', fontSize: 12, fontWeight: 700, padding: '4px 12px', borderRadius: 999 }}>Status: {STATUS_LABELS[status]}</span>}
               {urgency && <span style={{ background: URGENCY_COLORS[urgency] + '18', color: URGENCY_COLORS[urgency], fontSize: 12, fontWeight: 700, padding: '4px 12px', borderRadius: 999 }}>Urgency: {URGENCY_LABELS[urgency]}</span>}
-              {search && <span style={{ background: '#F8FAFC', color: '#475569', fontSize: 12, fontWeight: 700, padding: '4px 12px', borderRadius: 999 }}>"{search}"</span>}
+              {search && <span style={{ background: '#F8FAFC', color: '#475569', fontSize: 12, fontWeight: 700, padding: '4px 12px', borderRadius: 999 }}>{search}</span>}
             </motion.div>
           )}
         </AnimatePresence>

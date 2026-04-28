@@ -9,6 +9,8 @@ env.bak/
 venv.bak/
 
 # Firebase / GCloud credentials (NEVER commit)
+.firebaserc
+.firebase/
 *-service-account*.json
 *serviceAccountKey*.json
 

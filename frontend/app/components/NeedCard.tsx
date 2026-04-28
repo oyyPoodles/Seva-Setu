@@ -106,11 +106,11 @@ export default function NeedCard({ need }: Props) {
           {/* Footer */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 12, borderTop: '1px solid #F1F5F9' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ fontSize: 12, background: statusStyle.bg, color: statusStyle.text, padding: '3px 10px', borderRadius: 999, fontWeight: 700, textTransform: 'uppercase', fontSize: 10, letterSpacing: '0.06em' }}>
+              <span style={{ background: statusStyle.bg, color: statusStyle.text, padding: '3px 10px', borderRadius: 999, fontWeight: 700, textTransform: 'uppercase', fontSize: 10, letterSpacing: '0.06em' }}>
                 {need.status?.replace(/_/g, ' ')}
               </span>
             </div>
-            <div style={{ display: 'flex', align: 'center', gap: 6, fontSize: 12, color: '#94A3B8' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#94A3B8' }}>
               <span>📍 {need.location_name?.split(',')[0] || '—'}</span>
               <span>·</span>
               <span>{timeAgo(need.created_at)}</span>

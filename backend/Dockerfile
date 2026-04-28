@@ -19,8 +19,13 @@ RUN apt-get update && apt-get install -y \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application code
+# Copy application code and runtime data defaults
 COPY ./app /app/app
+COPY ./data /app/data
+
+# Cloud Run provides an ephemeral writable filesystem. Ensure the services that
+# persist lightweight learning/offline state have a directory to write to.
+RUN mkdir -p /app/data
 
 # Expose port
 EXPOSE 8000

@@ -197,7 +197,9 @@ export default function ChatPanel({ isOpen, onClose }: Props) {
         setMessages(prev => [...prev, { role: 'assistant', text: e.data }]);
       };
       return () => ws.close();
-    } catch { setConnected(false); }
+    } catch {
+      return;
+    }
   }, [isOpen]);
 
   useEffect(() => {
@@ -288,7 +290,7 @@ export default function ChatPanel({ isOpen, onClose }: Props) {
               <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 20 }}>
                 <SevaDrone size={110} floating />
               </div>
-              <div style={{ fontSize: 20, fontWeight: 800, color: '#fff', marginBottom: 6, fontFamily: 'var(--font-heading)' }}>Hi, I'm SevaBot! 👋</div>
+              <div style={{ fontSize: 20, fontWeight: 800, color: '#fff', marginBottom: 6, fontFamily: 'var(--font-heading)' }}>Hi, I&apos;m SevaBot! 👋</div>
               <p style={{ fontSize: 14, color: '#6EE7B7', margin: '0 0 28px', lineHeight: 1.6 }}>
                 I have live access to all needs,<br />volunteers and regional crisis data.
               </p>

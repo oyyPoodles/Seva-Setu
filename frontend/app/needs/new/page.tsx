@@ -21,7 +21,7 @@ const stagger = {
 };
 const fadeUp = {
   hidden: { opacity: 0, y: 16 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] } }
+  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] as const } }
 };
 
 function Field({ children }: { children: React.ReactNode }) {
@@ -63,7 +63,6 @@ export default function SubmitNeedPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [skillInput, setSkillInput] = useState('');
-  const [step, setStep] = useState(1);
   const [focusedTextarea, setFocusedTextarea] = useState(false);
 
   const [form, setForm] = useState<{
@@ -120,8 +119,6 @@ export default function SubmitNeedPage() {
   const urgencyBg = form.urgency_base >= 0.85 ? '#FEF2F2' :
     form.urgency_base >= 0.65 ? '#FFF7ED' :
     form.urgency_base >= 0.40 ? '#FEFCE8' : '#F0FDF4';
-
-  const selectedType = NEED_TYPES.find(t => t.value === form.need_type);
 
   return (
     <div style={{ minHeight: 'calc(100vh - 56px)', background: 'linear-gradient(135deg, #F0FDF4 0%, #F8FAFC 50%, #EFF6FF 100%)', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '48px 24px 80px' }}>

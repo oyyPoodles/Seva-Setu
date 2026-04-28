@@ -3,14 +3,13 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MOCK_STATS, MOCK_HEATMAP, MOCK_DESERTS, MOCK_VOL_LOCATIONS, MOCK_ACTIVITY } from '@/lib/mock-data';
-import StatsCard from '@/app/components/StatsCard';
 import HeatMap from '@/app/components/HeatMap';
 import ChatPanel from '@/app/components/ChatPanel';
 import { formatNeedType, timeAgo, urgencyColor, formatPercent } from '@/lib/utils';
 import { HeatmapPoint } from '@/lib/api';
 
 // Recharts for Product-Grade Analytics
-import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, LabelList } from 'recharts';
+import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis } from 'recharts';
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } };
 
@@ -109,7 +108,7 @@ export default function DashboardPage() {
                 </Pie>
                 <RechartsTooltip
                   contentStyle={{ borderRadius: 12, border: 'none', boxShadow: '0 8px 24px rgba(0,0,0,0.12)', fontSize: 13, fontWeight: 600, padding: '8px 14px' }}
-                  formatter={(val: number, name: string) => [`${val} needs`, name]}
+                  formatter={(val, name) => [`${Number(val ?? 0)} needs`, String(name)]}
                 />
               </PieChart>
             </ResponsiveContainer>

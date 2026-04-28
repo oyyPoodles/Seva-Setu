@@ -1,7 +1,7 @@
 'use client';
 import { useState, useMemo, useEffect } from 'react';
 import DeckGL from '@deck.gl/react';
-import { ScatterplotLayer, IconLayer } from '@deck.gl/layers';
+import { ScatterplotLayer } from '@deck.gl/layers';
 import { Map } from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { HeatmapPoint, DesertZone, VolunteerLocation } from '@/lib/api';
@@ -16,6 +16,13 @@ interface Props {
   onHotspotClick?: (point: HeatmapPoint) => void;
 }
 
+type HoverInfo = {
+  object: Partial<HeatmapPoint & VolunteerLocation>;
+  x: number;
+  y: number;
+  isVol?: boolean;
+};
+
 const INITIAL_VIEW_STATE = {
   longitude: 78.9629,
   latitude: 20.5937,
@@ -28,9 +35,9 @@ const INITIAL_VIEW_STATE = {
 
 const MAP_STYLE = 'https://basemaps.cartocdn.com/gl/positron-nolabels-gl-style/style.json';
 
-export default function HeatMap({ points, deserts = [], volunteerLocations = [], showVolunteers, onHotspotClick }: Props) {
+export default function HeatMap({ points, volunteerLocations = [], showVolunteers, onHotspotClick }: Props) {
   const [viewState, setViewState] = useState(INITIAL_VIEW_STATE);
-  const [hoverInfo, setHoverInfo] = useState<any>(null);
+  const [hoverInfo, setHoverInfo] = useState<HoverInfo | null>(null);
   const [selectedVol, setSelectedVol] = useState<VolunteerLocation | null>(null);
   const [volCardPos, setVolCardPos] = useState({ x: 0, y: 0 });
 
@@ -55,7 +62,9 @@ export default function HeatMap({ points, deserts = [], volunteerLocations = [],
     },
     getLineColor: [255, 255, 255, 255],
     getRadius: (d) => d.affected_count ? Math.max(15, Math.log2(d.affected_count) * 9) : 15,
-    onHover: (info) => setHoverInfo(info),
+    onHover: (info) => {
+      setHoverInfo(info.object ? { object: info.object as HeatmapPoint, x: info.x, y: info.y } : null);
+    },
     onClick: (info) => {
       if (info.object) {
         setSelectedVol(null); // close volunteer card
@@ -92,7 +101,7 @@ export default function HeatMap({ points, deserts = [], volunteerLocations = [],
     getRadius: 8,
     onHover: (info) => {
       if (info.object) {
-        setHoverInfo({ ...info, isVol: true });
+        setHoverInfo({ object: info.object as VolunteerLocation, x: info.x, y: info.y, isVol: true });
       } else {
         setHoverInfo(null);
       }
