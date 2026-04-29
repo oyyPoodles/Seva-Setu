@@ -2,11 +2,19 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MOCK_STATS, MOCK_HEATMAP, MOCK_DESERTS, MOCK_VOL_LOCATIONS, MOCK_ACTIVITY } from '@/lib/mock-data';
+import useSWR from 'swr';
+import { 
+  fetchDashboardStats, 
+  fetchHeatmap, 
+  fetchDeserts, 
+  fetchVolunteerLocations, 
+  fetchActivity,
+  HeatmapPoint
+} from '@/lib/api';
 import HeatMap from '@/app/components/HeatMap';
 import ChatPanel from '@/app/components/ChatPanel';
+import LoadingBar from '@/app/components/LoadingBar';
 import { formatNeedType, timeAgo, urgencyColor, formatPercent } from '@/lib/utils';
-import { HeatmapPoint } from '@/lib/api';
 
 // Recharts for Product-Grade Analytics
 import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis } from 'recharts';
@@ -15,25 +23,42 @@ const fadeUp = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } };
 
 export default function DashboardPage() {
   const router = useRouter();
-  const stats = MOCK_STATS;
   const [showVol, setShowVol] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
   const [selectedHotspot, setSelectedHotspot] = useState<HeatmapPoint | null>(null);
 
-  const categoryData = Object.entries(stats.needs_by_type)
+  // ─── Data Fetching with SWR ─────────────────────────────────
+  const { data: stats, error: statsError } = useSWR('dashboard/stats', fetchDashboardStats);
+  const { data: heatmap } = useSWR('dashboard/heatmap', () => fetchHeatmap());
+  const { data: deserts } = useSWR('dashboard/deserts', () => fetchDeserts());
+  const { data: volLocs } = useSWR('dashboard/vol-locations', fetchVolunteerLocations);
+  const { data: activity } = useSWR('dashboard/activity', () => fetchActivity(20));
+
+  const isLoading = !stats || !heatmap || !activity;
+
+  if (statsError) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-red-50 text-red-600 font-semibold">
+        Error loading dashboard. Please ensure the backend is running.
+      </div>
+    );
+  }
+
+  const categoryData = stats ? Object.entries(stats.needs_by_type)
     .map(([name, value]) => ({ name: formatNeedType(name), value }))
-    .sort((a, b) => b.value - a.value);
+    .sort((a, b) => b.value - a.value) : [];
 
   const COLORS = ['#059669', '#10B981', '#34D399', '#6EE7B7', '#A7F3D0', '#D1FAE5', '#ECFDF5'];
 
   return (
     <div style={{ position: 'relative', width: '100vw', height: 'calc(100vh - 56px)', overflow: 'hidden', background: '#F8FAFC' }}>
+      {isLoading && <LoadingBar />}
       
       {/* Background Map */}
       <HeatMap 
-        points={MOCK_HEATMAP} 
-        deserts={MOCK_DESERTS} 
-        volunteerLocations={MOCK_VOL_LOCATIONS} 
+        points={heatmap || []} 
+        deserts={deserts || []} 
+        volunteerLocations={volLocs || []} 
         showVolunteers={showVol} 
         onHotspotClick={setSelectedHotspot}
       />
@@ -67,23 +92,25 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <div style={{ display: 'flex', gap: 16, pointerEvents: 'auto' }}>
-          {[
-            { v: stats.total_needs, l: 'Total Needs' },
-            { v: stats.active_needs, l: 'Active Needs' },
-            { v: stats.critical_needs, l: 'Critical Now', c: '#DC2626' },
-            { v: stats.matched_needs, l: 'Matched' },
-            { v: stats.active_volunteers, l: 'Volunteers Active' },
-          ].map((s, i) => (
-            <div key={i} style={{ 
-              background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(16px)', padding: '16px 20px', borderRadius: 16, 
-              border: '1px solid rgba(255,255,255,0.5)', boxShadow: '0 8px 32px rgba(0,0,0,0.05)', flex: 1
-            }}>
-              <div style={{ fontSize: 28, fontWeight: 700, color: s.c || '#1C1917', fontFamily: 'var(--font-heading)' }}>{s.v}</div>
-              <div style={{ fontSize: 12, fontWeight: 600, color: '#78716C', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{s.l}</div>
-            </div>
-          ))}
-        </div>
+        {stats && (
+          <div style={{ display: 'flex', gap: 16, pointerEvents: 'auto' }}>
+            {[
+              { v: stats.total_needs, l: 'Total Needs' },
+              { v: stats.active_needs, l: 'Active Needs' },
+              { v: stats.critical_needs, l: 'Critical Now', c: '#DC2626' },
+              { v: stats.matched_needs, l: 'Matched' },
+              { v: stats.active_volunteers, l: 'Volunteers Active' },
+            ].map((s, i) => (
+              <div key={i} style={{ 
+                background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(16px)', padding: '16px 20px', borderRadius: 16, 
+                border: '1px solid rgba(255,255,255,0.5)', boxShadow: '0 8px 32px rgba(0,0,0,0.05)', flex: 1
+              }}>
+                <div style={{ fontSize: 28, fontWeight: 700, color: s.c || '#1C1917', fontFamily: 'var(--font-heading)' }}>{s.v}</div>
+                <div style={{ fontSize: 12, fontWeight: 600, color: '#78716C', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{s.l}</div>
+              </div>
+            ))}
+          </div>
+        )}
       </motion.div>
 
       {/* Right Floating Panel (Charts & Activity) */}
@@ -121,7 +148,8 @@ export default function DashboardPage() {
           {/* Custom legend */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 8 }}>
             {categoryData.map((entry, i) => {
-              const pct = Math.round((entry.value / categoryData.reduce((s, d) => s + d.value, 0)) * 100);
+              const total = categoryData.reduce((s, d) => s + d.value, 0);
+              const pct = total > 0 ? Math.round((entry.value / total) * 100) : 0;
               return (
                 <div key={entry.name} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <span style={{ width: 10, height: 10, borderRadius: 3, background: COLORS[i % COLORS.length], flexShrink: 0 }} />
@@ -137,7 +165,7 @@ export default function DashboardPage() {
         <div style={{ padding: '16px 24px', borderTop: '1px solid rgba(0,0,0,0.05)', flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 700, margin: '0 0 16px', color: '#1C1917' }}>⚡ Live Activity</h2>
           <div style={{ overflowY: 'auto', flex: 1, paddingRight: 8 }}>
-            {MOCK_ACTIVITY.map((item, i) => (
+            {activity?.map((item, i) => (
               <div key={i} style={{ marginBottom: 16, display: 'flex', gap: 12 }}>
                 <div style={{ 
                   width: 32, height: 32, borderRadius: 10, background: '#F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
@@ -151,6 +179,9 @@ export default function DashboardPage() {
                 </div>
               </div>
             ))}
+            {(!activity || activity.length === 0) && (
+              <div style={{ fontSize: 13, color: '#94A3B8', textAlign: 'center', marginTop: 40 }}>No recent activity</div>
+            )}
           </div>
         </div>
       </motion.div>
@@ -194,7 +225,7 @@ export default function DashboardPage() {
                   <div style={{ fontSize: 11, fontWeight: 600, color: '#78716C', textTransform: 'uppercase' }}>Urgency Level</div>
                 </div>
                 <button
-                  onClick={() => router.push(`/needs/${selectedHotspot.need_id || 'n1'}`)}
+                  onClick={() => router.push(`/needs/${selectedHotspot.need_id}`)}
                   style={{ 
                     background: 'linear-gradient(135deg, #059669, #10B981)', color: '#fff', border: 'none', borderRadius: 12, padding: '0 24px',
                     fontSize: 14, fontWeight: 700, cursor: 'pointer', marginLeft: 'auto',

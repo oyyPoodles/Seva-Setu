@@ -2,9 +2,11 @@
 import { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
-import { MOCK_NEEDS } from '@/lib/mock-data';
+import useSWR from 'swr';
+import { fetchNeeds } from '@/lib/api';
 import NeedCard from '@/app/components/NeedCard';
 import EmptyState from '@/app/components/EmptyState';
+import LoadingBar from '@/app/components/LoadingBar';
 
 const TYPES = ['', 'HEALTHCARE', 'EDUCATION', 'WATER_SANITATION', 'SHELTER', 'FOOD', 'INFRASTRUCTURE', 'LIVELIHOOD'];
 const STATUSES = ['', 'new', 'matched', 'assigned', 'in_progress', 'completed'];
@@ -61,20 +63,18 @@ export default function NeedsPage() {
   const [search, setSearch] = useState('');
   const [focused, setFocused] = useState(false);
 
-  const filtered = useMemo(() => {
-    return MOCK_NEEDS.filter(n => {
-      if (type && n.need_type !== type) return false;
-      if (status && n.status !== status) return false;
-      if (urgency && urgencyBucket(n.urgency_current ?? n.urgency_base) !== urgency) return false;
-      if (search && !n.title.toLowerCase().includes(search.toLowerCase()) && !n.description.toLowerCase().includes(search.toLowerCase())) return false;
-      return true;
-    });
-  }, [type, status, urgency, search]);
+  // ─── Data Fetching with SWR ─────────────────────────────────
+  const { data, error, isLoading } = useSWR(
+    ['needs', type, status, urgency, search],
+    () => fetchNeeds({ type, status, urgency, search, page_size: 50 })
+  );
 
+  const needs = data?.needs || [];
   const hasFilters = type || status || urgency || search;
 
   return (
     <div style={{ minHeight: 'calc(100vh - 56px)', background: 'linear-gradient(180deg, #F8FAFC 0%, #fff 200px)' }}>
+      {isLoading && <LoadingBar />}
       <div style={{ maxWidth: 1400, margin: '0 auto', padding: '40px 28px 80px' }}>
 
         {/* Header */}
@@ -86,7 +86,7 @@ export default function NeedsPage() {
                 Community Needs
               </h1>
               <p style={{ fontSize: 15, color: '#64748B', margin: 0 }}>
-                {filtered.length} {filtered.length === 1 ? 'need' : 'needs'} {hasFilters ? 'match your filters' : 'reported across India'}
+                {needs.length} {needs.length === 1 ? 'need' : 'needs'} {hasFilters ? 'match your filters' : 'reported across India'}
               </p>
             </div>
             <Link href="/needs/new" style={{
@@ -149,6 +149,13 @@ export default function NeedsPage() {
           </AnimatePresence>
         </motion.div>
 
+        {/* Error State */}
+        {error && (
+          <div style={{ padding: 40, textAlign: 'center', color: '#EF4444', fontWeight: 600 }}>
+            Error loading needs. Please check your connection.
+          </div>
+        )}
+
         {/* Active filter chips */}
         <AnimatePresence>
           {hasFilters && (
@@ -163,11 +170,11 @@ export default function NeedsPage() {
         </AnimatePresence>
 
         {/* Grid */}
-        {filtered.length === 0 ? (
+        {!isLoading && needs.length === 0 ? (
           <EmptyState message="No needs match your filters." ctaLabel="Clear filters" ctaHref="/needs" />
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))', gap: 20 }}>
-            {filtered.map((need, i) => (
+            {needs.map((need, i) => (
               <motion.div key={need.id} custom={i} variants={cardVariants} initial="hidden" animate="visible" style={{ height: '100%' }}>
                 <NeedCard need={need} />
               </motion.div>

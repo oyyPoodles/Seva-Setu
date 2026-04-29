@@ -1,9 +1,11 @@
 'use client';
 import { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
-import { MOCK_VOLUNTEERS } from '@/lib/mock-data';
+import useSWR from 'swr';
+import { fetchVolunteers } from '@/lib/api';
 import VolunteerCard from '@/app/components/VolunteerCard';
 import EmptyState from '@/app/components/EmptyState';
+import LoadingBar from '@/app/components/LoadingBar';
 import { cardVariants } from '@/lib/animations';
 import Link from 'next/link';
 
@@ -22,22 +24,23 @@ export default function VolunteersPage() {
   const [skill, setSkill] = useState('');
   const [skillInput, setSkillInput] = useState('');
 
-  const filtered = useMemo(() => {
-    return MOCK_VOLUNTEERS.filter(v => {
-      if (status && v.status !== status) return false;
-      if (skill && !v.skills.some(s => s.toLowerCase().includes(skill.toLowerCase()))) return false;
-      return true;
-    });
-  }, [status, skill]);
+  // ─── Data Fetching with SWR ─────────────────────────────────
+  const { data: volunteers, error, isLoading } = useSWR(
+    ['volunteers', status, skill],
+    () => fetchVolunteers({ status: status || undefined, skill: skill || undefined })
+  );
+
+  const list = volunteers || [];
 
   return (
     <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}
       style={{ maxWidth: 1320, margin: '0 auto', padding: '32px 24px 64px' }}
     >
+      {isLoading && <LoadingBar />}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 28 }}>
         <div>
           <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: 30, fontWeight: 700, color: '#1C1917', margin: '0 0 4px' }}>Volunteers</h1>
-          <p style={{ fontSize: 14, color: '#78716C', margin: 0 }}>{filtered.length} registered volunteers</p>
+          <p style={{ fontSize: 14, color: '#78716C', margin: 0 }}>{list.length} registered volunteers</p>
         </div>
         <Link href="/needs/new" style={{
           background: 'linear-gradient(135deg, #059669, #10B981)', color: '#fff', padding: '10px 20px',
@@ -65,11 +68,17 @@ export default function VolunteersPage() {
         )}
       </div>
 
-      {filtered.length === 0 ? (
+      {error && (
+        <div style={{ padding: 40, textAlign: 'center', color: '#EF4444', fontWeight: 600 }}>
+          Error loading volunteers. Please check your connection.
+        </div>
+      )}
+
+      {!isLoading && list.length === 0 ? (
         <EmptyState message="No volunteers match your filters." ctaLabel="Clear filters" ctaHref="/volunteers" />
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 16 }}>
-          {filtered.map((vol, i) => (
+          {list.map((vol, i) => (
             <motion.div key={vol.id} custom={i} variants={cardVariants} initial="hidden" animate="visible">
               <VolunteerCard volunteer={vol} />
             </motion.div>
