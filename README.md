@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://developers.google.com/static/community/images/solution-challenge/2024/hero_desktop.webp" alt="Google Solution Challenge Banner" width="100%" style="border-radius: 15px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); margin-bottom: 20px;" />
+  <img src="https://storage.googleapis.com/gweb-developer-goog-blog-assets/images_archive/original_images/2023_solutionchallenge_blogheader_1920x1080.png" alt="Google Solution Challenge Banner" width="100%" style="border-radius: 15px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); margin-bottom: 20px;" />
 
   <h1 align="center">🚀 SevaSetu</h1>
   <h3 align="center">AI-Powered Smart Resource Allocation Platform</h3>
