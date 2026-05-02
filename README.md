@@ -1,173 +1,225 @@
-# 🚀 SevaSetu – AI-Powered Smart Resource Allocation Platform
+<div align="center">
+  <img src="https://developers.google.com/static/community/images/solution-challenge/2024/hero_desktop.webp" alt="Google Solution Challenge Banner" width="100%" style="border-radius: 15px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); margin-bottom: 20px;" />
 
-MVP Link: https://sevasetu-242a8.web.app/
+  <h1 align="center">🚀 SevaSetu</h1>
+  <h3 align="center">AI-Powered Smart Resource Allocation Platform</h3>
 
-> **Bridging community needs with the right help using AI**
+  <p align="center">
+    <strong>Bridging community needs with the right help using AI.</strong><br>
+    <em>Let's build the future with AI.</em>
+  </p>
 
----
+  <p align="center">
+    <a href="https://sevasetu-242a8.web.app/">
+      <img src="https://img.shields.io/badge/View_Live_MVP-FF3E4D?style=for-the-badge&logo=vercel&logoColor=white" alt="Live MVP" />
+    </a>
+    <a href="#-tech-stack">
+      <img src="https://img.shields.io/badge/Tech_Stack-4285F4?style=for-the-badge&logo=googlecloud&logoColor=white" alt="Tech Stack" />
+    </a>
+    <a href="#-built-for">
+      <img src="https://img.shields.io/badge/Solution_Challenge-2026-34A853?style=for-the-badge&logo=google&logoColor=white" alt="Solution Challenge" />
+    </a>
+  </p>
+</div>
+
+<hr style="border: 1px solid #e0e0e0; margin: 40px 0;" />
 
 ## 🌍 Overview
 
-SevaSetu is an AI-driven platform that transforms **scattered community data** into **actionable intelligence** and enables **smart volunteer coordination**.
+Are you a student developer ready to create a difference? **SevaSetu** is built for the **Google Solution Challenge 2026 India** to solve real-world humanitarian problems using Google developer technologies.
 
-It aggregates inputs from multiple sources such as surveys, WhatsApp messages, and field reports, and uses **Generative AI + Semantic Matching** to:
+SevaSetu is an AI-driven platform that transforms **scattered community data** into **actionable intelligence** and enables **smart volunteer coordination**. It aggregates inputs from multiple sources (surveys, WhatsApp, field reports) and uses **Generative AI + Semantic Matching** to:
 
-- Identify urgent needs  
-- Prioritize critical situations  
-- Match the right volunteers efficiently  
+<div align="center">
+  <table>
+    <tr>
+      <td align="center">🚨<br><b>Identify</b></td>
+      <td align="center">🚦<br><b>Prioritize</b></td>
+      <td align="center">🤝<br><b>Match</b></td>
+    </tr>
+    <tr>
+      <td>Urgent needs in real-time.</td>
+      <td>Critical situations autonomously.</td>
+      <td>The right volunteers efficiently.</td>
+    </tr>
+  </table>
+</div>
 
----
+<hr style="border: 1px dashed #e0e0e0; margin: 30px 0;" />
 
 ## 🧠 Core Idea
 
-> **Raw Data → AI Intelligence → Smart Allocation → Real Impact**
+<div align="center">
+  <h3><code>Raw Data ➔ AI Intelligence ➔ Smart Allocation ➔ Real Impact</code></h3>
+</div>
 
----
+<hr style="border: 1px dashed #e0e0e0; margin: 30px 0;" />
 
-## ❗ Problem Statement
+## ❗ Problem Statement vs 💡 Our Solution
 
-- Community data is scattered across multiple sources  
-- No centralized system for prioritizing urgent needs  
-- Inefficient volunteer assignment  
-- Lack of real-time visibility into crisis zones  
+| The Problem 🌪️ | The Solution 🎯 |
+| :--- | :--- |
+| **Scattered Data:** Information siloed across social media and apps. | **Multi-source Ingestion:** Collects distress signals globally. |
+| **No Prioritization:** Hard to rank urgent vs. non-urgent needs. | **AI Understanding:** Gemini extracts context & urgency. |
+| **Inefficient Assignment:** Volunteers misallocated. | **Smart Matching:** Finds best volunteer via vector similarity. |
+| **Lack of Visibility:** No geographical mapping. | **Real-time Dashboards:** Live heatmaps and analytics. |
 
----
-
-## 💡 Our Solution
-
-SevaSetu provides:
-
-- 📥 Multi-source data ingestion  
-- 🧠 AI-powered need understanding  
-- ⚙️ Smart volunteer matching  
-- 📊 Real-time dashboards & insights  
-
----
+<hr style="border: 1px dashed #e0e0e0; margin: 30px 0;" />
 
 ## ⚙️ Key Features
 
-- **Intelligent Need Extraction**  
-  Extracts structured data (need, urgency, location, skills) from unstructured inputs  
+* 🔍 **Intelligent Need Extraction:** Automatically structures unstructured inputs (need, urgency, location, required skills).
+* 🎯 **Smart Volunteer Matching Engine:** Matches based on Skills, Location, Availability, and Urgency.
+* 📡 **Real-Time Data Aggregation:** Unifies data channels.
+* 🗺️ **Hotspot Detection:** Identifies high-risk areas using DBSCAN clustering.
+* 📈 **AI Insights & Prioritization:** Recommends actionable decisions to admins.
+* 🔄 **Feedback Learning System:** Continuous improvement in matching accuracy.
 
-- **Smart Volunteer Matching Engine**  
-  Matches volunteers using:
-  - Skills  
-  - Location  
-  - Availability  
-  - Urgency  
+<hr style="border: 1px solid #e0e0e0; margin: 40px 0;" />
 
-- **Real-Time Data Aggregation**  
-  Integrates data from multiple channels  
+## 🏗️ Architecture Diagram
 
-- **Hotspot Detection**  
-  Identifies high-risk areas using clustering  
-
-- **AI Insights & Prioritization**  
-  Generates actionable decisions  
-
-- **Feedback Learning System**  
-  Improves matching accuracy over time  
-
----
-
-## 🏗️ Architecture
 ```mermaid
+graph TD
+    %% Styling Configuration
+    classDef primary fill:#e3f2fd,stroke:#1e88e5,stroke-width:2px,color:#0d47a1,rx:10px,ry:10px;
+    classDef secondary fill:#e8f5e9,stroke:#43a047,stroke-width:2px,color:#1b5e20,rx:10px,ry:10px;
+    classDef ai fill:#fff3e0,stroke:#fb8c00,stroke-width:2px,color:#e65100,rx:10px,ry:10px;
+    classDef db fill:#fce4ec,stroke:#d81b60,stroke-width:2px,color:#880e4f,rx:10px,ry:10px;
+
+    %% Data Sources
+    subgraph "📡 Data Sources"
+        S1[📋 Surveys & Forms] --> DI[📥 Data Ingestion]
+        S2[💬 WhatsApp / SMS] --> DI
+        S3[📝 Field Reports] --> DI
+    end
+
+    %% Backend Layer
+    subgraph "⚙️ Backend Processing"
+        DI --> API[🚀 FastAPI Endpoints]
+        API --> NLP[🧠 NLP Processing]
+    end
+
+    %% AI Intelligence Layer
+    subgraph "🤖 AI Layer"
+        NLP --> GenAI[✨ Google Gemini GenAI]
+        NLP --> Emb[📊 Sentence Transformers]
+    end
+
+    %% Storage Layer
+    subgraph "🗄️ Database & Storage"
+        GenAI --> DB[(🐘 PostgreSQL)]
+        Emb --> Vec[(📈 pgvector)]
+    end
+
+    %% Core Engine
+    subgraph "⚡ Core Processing Engine"
+        DB --> CE[🎯 Smart Matching Engine]
+        Vec --> CE
+        DB --> Cluster[🗺️ DBSCAN Clustering]
+        Cluster --> HD[🔥 Hotspot Detection]
+    end
+
+    %% Delivery Layer
+    subgraph "💻 Delivery / UI"
+        CE --> UI[🖥️ Next.js Dashboard]
+        HD --> UI
+        UI --> Vol[👥 Volunteers & Admins]
+    end
+
+    %% Apply Styles
+    class API,DI,NLP,CE,HD primary;
+    class UI,Vol secondary;
+    class GenAI,Emb ai;
+    class DB,Vec db;
 ```
+
+<hr style="border: 1px dashed #e0e0e0; margin: 30px 0;" />
 
 ## 🔄 Process Flow
+
 ```mermaid
+sequenceDiagram
+    autonumber
+    
+    actor User as 🧑‍🤝‍🧑 Community
+    participant API as ⚙️ FastAPI
+    participant AI as 🧠 Gemini & AI
+    participant DB as 🗄️ PostgreSQL
+    participant Engine as 🚀 Match Engine
+    participant UI as 💻 Dashboard
+
+    Note over User,UI: End-to-End Need Fulfillment Pipeline
+
+    User->>+API: Submits Need (Text/Audio)
+    API->>+AI: Extract intent & urgency
+    AI-->>-API: Structured Data (Urgency, Skills, Location)
+    
+    API->>+AI: Generate text embeddings
+    AI-->>-API: Vector Representation
+    
+    API->>DB: Store Entity & Vector Data
+    API->>+Engine: Trigger Matchmaking
+    Engine->>DB: Query Nearest/Best Volunteers (pgvector)
+    DB-->>Engine: Top Matched Volunteers
+    
+    Engine-->>-UI: Send Real-Time Updates & Matches
+    UI->>User: Display Match & Notify Volunteer
 ```
+
+<hr style="border: 1px solid #e0e0e0; margin: 40px 0;" />
 
 ## 🧪 Tech Stack
 
-### 🧠 AI / ML
-- Google Gemini (GenAI)
-- Sentence Transformers (Embeddings)
-- NLP Processing
-- Clustering (DBSCAN)
+<div align="center">
+  
+| 🧠 AI / ML | ⚙️ Backend | 🗄️ Database | 🌐 Frontend |
+| :---: | :---: | :---: | :---: |
+| ![Gemini](https://img.shields.io/badge/Google%20Gemini-8E75B2?style=flat-square&logo=googlebard&logoColor=white) <br> ![Transformers](https://img.shields.io/badge/Sentence%20Transformers-FF9900?style=flat-square&logo=huggingface&logoColor=white) | ![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=flat-square&logo=fastapi&logoColor=white) <br> ![Python](https://img.shields.io/badge/Python-3776AB?style=flat-square&logo=python&logoColor=white) | ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=flat-square&logo=postgresql&logoColor=white) <br> ![pgvector](https://img.shields.io/badge/pgvector-336791?style=flat-square&logo=postgresql&logoColor=white) | ![Next.js](https://img.shields.io/badge/Next.js-000000?style=flat-square&logo=next.js&logoColor=white) <br> ![Tailwind](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=flat-square&logo=tailwind-css&logoColor=white) |
 
-### ⚙️ Backend
-- FastAPI
-- Python
-- SQLAlchemy
+</div>
 
-### 🗄️ Database
-- PostgreSQL
-- pgvector (Vector Search)
+<hr style="border: 1px dashed #e0e0e0; margin: 30px 0;" />
 
-### 🌐 Frontend
-- Next.js (React)
-- Tailwind CSS
+## 🎯 Unique Selling Proposition (USP)
 
-### ☁️ Infrastructure
-- Firebase (Auth & Notifications)
-- Cloud-ready (AWS / GCP)
+<details>
+<summary><b>Click to reveal what makes SevaSetu unique!</b></summary>
+<br>
 
----
+* 🤖 **Data-driven Resource Allocation:** Completely autonomous and AI-powered.
+* 🗣️ **Multilingual AI Understanding:** Breaks language barriers using Gemini.
+* 📏 **Smart Multi-factor Matching:** Looks at location, skills, and urgency simultaneously.
+* 🚨 **Real-time Crisis Detection:** Proactive clustering of distress signals.
+* 🔎 **Explainable AI Decisions:** Transparent reasons for why a volunteer was chosen.
 
-## 🧩 System Design
+</details>
 
-### 🔹 Layers
-
-- **Data Layer** → PostgreSQL + Vector DB  
-- **AI Layer** → GenAI + Embeddings  
-- **Core Engine** → Matching + Clustering  
-- **Delivery Layer** → API + Dashboard  
-
----
-
-## 🎯 USP (Unique Selling Proposition)
-
-- Data-driven resource allocation (not manual)  
-- Multilingual AI understanding  
-- Smart multi-factor matching system  
-- Real-time crisis detection  
-- Explainable AI decisions  
-
----
-
-## 📊 Impact
-
-- ⚡ Faster emergency response  
-- 🎯 Right volunteer → right task  
-- 📉 Reduced resource wastage  
-- 🌍 Improved community outreach  
-
----
+<hr style="border: 1px dashed #e0e0e0; margin: 30px 0;" />
 
 ## 🔮 Future Scope
 
-- Predictive crisis detection  
-- Social media signal integration  
-- Government-level deployment  
-- Personalized volunteer recommendations  
+* 🔮 **Predictive Crisis Detection:** Using historical data to predict outbreaks or shortages.
+* 📱 **Social Media Integration:** Real-time tweet and post scraping for distress signals.
+* 🏛️ **Government-level Deployment:** Scaling up for disaster management agencies.
+* 🎁 **Personalized Volunteer Recommendations:** Gamified rewards based on AI history.
 
----
+<hr style="border: 1px solid #e0e0e0; margin: 40px 0;" />
 
-## 🖥️ Demo
+## 👥 Meet the Developers
 
-> *(Add your links here)*
+Proudly built by:
+* 👨‍💻 **Er. Ujjwal Chaudhary**
+* 👨‍💻 **Er. Ayush Gourav**
 
-- 🔗 Live Demo:  
-- 🎥 Video Demo:  
-- 💻 GitHub Repo:  
+<hr style="border: 1px solid #e0e0e0; margin: 40px 0;" />
 
----
-
-## 👥 Team
-
-- Ayush Gourav  
-- (Add your team members)
-
----
-
-## 🏆 Built For
-
-**AI for Bharat Hackathon**  
-*Smart Resource Allocation Challenge*
-
----
-
-## 📌 Tagline
-
-> **“From scattered data to intelligent humanitarian action.”**
+<div align="center">
+  <h2>🏆 Built For</h2>
+  <img src="https://img.shields.io/badge/Google_Solution_Challenge-2026-4285F4?style=for-the-badge&logo=google&logoColor=white" alt="Google Solution Challenge 2026" />
+  <p><em>Build with AI — Let's build the future with AI.</em></p>
+  
+  <br>
+  
+  <h3><strong>“From scattered data to intelligent humanitarian action.”</strong></h3>
+</div>
